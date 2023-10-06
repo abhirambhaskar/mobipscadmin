@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Feedbacks</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/admin/dashboard/1">
+            <img src="https://play-lh.googleusercontent.com/Fd6ajj5vE_duN1xBV69lGn9eD4aPGnSNVq9Ad4Kv_7iQJ7g3gQqldFZe9V5uEMqd_w=w240-h480-rw" width="30" height="30" class="d-inline-block align-top" alt="">
+            MobiPsc Admin
+        </a>
+    </nav>
+    
+    <div class="container mt-5">
+        <h2>Feedbacks</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Message</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% feedbacks.forEach(feedback => { %>
+                    <tr>
+                        <td><%= feedback.name %></td>
+                        <td><%= feedback.message %></td>
+                        <td><%= feedback.submittedAt ? feedback.submittedAt.toDateString() : 'Date not available' %></td>
+
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <a href="/admin/dashboard/1" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reported Questions</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/admin/dashboard/1">
+            <img src="https://play-lh.googleusercontent.com/Fd6ajj5vE_duN1xBV69lGn9eD4aPGnSNVq9Ad4Kv_7iQJ7g3gQqldFZe9V5uEMqd_w=w240-h480-rw" width="30" height="30" class="d-inline-block align-top" alt="">
+            MobiPsc Admin
+        </a>
+    </nav>
+    <div class="container mt-5">
+        <h2>Reported Questions</h2>
+        <table class="table" id="reportTable">
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Answer</th>
+                    <th>Report Message</th>
+                    <th>Report Date and time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+            
+            
+        </table>
+    </div>
+    <script>
+        // Assigning the server-side 'reports' data to a client-side JavaScript variable
+        const reportsData = <%- JSON.stringify(reports) %>;
+    
+        // Selecting the table body where the rows will be appended
+        const tableBody = document.querySelector('#reportTable tbody');
+
+        function formatDate(dateString) {
+            const dateObject = new Date(dateString);
+            const options = {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                second: 'numeric',
+                hour12: true, // Use 12-hour format
+            };
+            return dateObject.toLocaleString(undefined, options);
+        }
+
+
+        // Function to create a new table row for each report
+        function populateTable(reports) {
+            reports.forEach(report => {
+                // Creating a new table row element
+                const row = document.createElement('tr');
+
+                // Adding table data with the report info
+                row.innerHTML = `
+                    <td>${report.question ? report.question : 'No Data'}</td>
+                    <td>${report.answer ? report.answer : 'No Data'}</td>
+                    <td>${report.message ? report.message : 'No Data'}</td>
+                    <td>${report.reportedAt ? formatDate(report.reportedAt) : 'No Data'}</td>
+                    <td>
+                        <button onclick="window.location='/admin/report/delete/${report._id}'" class="btn btn-danger">Delete</button>
+                    </td>
+                `;
+
+                // Appending the new row to the table body
+                tableBody.appendChild(row);
+            });
+        }
+
+    
+        // Calling the populateTable function with the 'reportsData' to add rows to the table
+        populateTable(reportsData);
+    </script>
+    
+    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

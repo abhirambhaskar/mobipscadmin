@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Question</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .mic-button.recording i {
+            color: red;
+        }
+
+        #interim-transcript {
+            background-color: lightgray;
+            padding: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@300&display=swap');
+    
+        body, p, h3, table {
+            font-family: 'Noto Sans Malayalam', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/admin/dashboard/1">
+            <img src="https://play-lh.googleusercontent.com/Fd6ajj5vE_duN1xBV69lGn9eD4aPGnSNVq9Ad4Kv_7iQJ7g3gQqldFZe9V5uEMqd_w=w240-h480-rw" width="30" height="30" class="d-inline-block align-top" alt="">
+            MobiPsc Admin
+        </a>
+    </nav>
+
+    <div class="container mt-5">
+        <h2>Add New Question</h2>
+    
+        <div class="row">
+            <!-- Column for the form -->
+            <div class="col-md-6">
+                <form action="" method="post">
+                    <div id="interim-transcript" class="container mt-5"></div>
+                    <div class="form-group">
+                        <label for="question">Question</label>
+                        <input type="text" class="form-control" id="question" name="question" required>
+                        <button type="button" id="question-mic" class="btn btn-secondary mt-2 mic-button">
+                            <i class="fas fa-microphone"></i> Speak Question
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="answer">Answer</label>
+                        <input type="text" class="form-control" id="answer" name="answer" required>
+                        <button type="button" id="answer-mic" class="btn btn-secondary mt-2 mic-button">
+                            <i class="fas fa-microphone"></i> Speak Answer
+                        </button>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                </form>
+            </div>
+    
+            <!-- Column for matching questions -->
+            <div class="col-md-6">
+                <div id="matching-questions" style="display:none;">
+                    <h5>Similar Questions Found:</h5>
+                    <ul id="questions-list"></ul>
+                    <button id="ignore-button" class="btn btn-warning">Ignore</button>
+                    <button id="different-button" class="btn btn-success">It is Different</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" integrity="sha512-uKQ39gEGiyUJl4AI6L+ekBdGKpGw4xJ55+xyJG7YFlJokPNYegn9KwQ3P8A7aFQAUtUsAQHep+d/lrGqrbPIDQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        var recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'ml-IN';
+
+        var isRecognizing = false;
+        var interimTranscriptDiv = document.getElementById('interim-transcript');
+
+        function toggleRecognition(inputId) {
+            const inputField = document.getElementById(inputId);
+            const micButton = document.getElementById(inputId + '-mic');
+
+            if (isRecognizing) {
+                recognition.stop();
+                return;
+            }
+
+            isRecognizing = true;
+            micButton.classList.add('recording');
+            interimTranscriptDiv.style.display = 'block';
+
+            recognition.onstart = function () {
+                console.log('Speech recognition started');
+                interimTranscriptDiv.textContent = '';
+            }
+
+            recognition.onresult = function (event) {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        inputField.value += transcript + ' ';
+                        interimTranscriptDiv.textContent = '';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                interimTranscriptDiv.textContent = interimTranscript;
+            }
+
+            recognition.onend = function () {
+                isRecognizing = false;
+                micButton.classList.remove('recording');
+                interimTranscriptDiv.style.display = 'none';
+                console.log('Speech recognition ended');
+            }
+
+            recognition.onerror = function(event) {
+                console.error(event.error);
+                micButton.classList.remove('recording');
+                interimTranscriptDiv.style.display = 'none';
+                isRecognizing = false;
+            }
+
+            recognition.start();
+        }
+
+        document.getElementById('question-mic').addEventListener('click', function() {
+            toggleRecognition('question');
+        });
+
+        document.getElementById('answer-mic').addEventListener('click', function() {
+            toggleRecognition('answer');
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent the form from submitting
+
+    // Get the question from the input field
+    const question = document.getElementById('question').value;
+
+    // Fetch similar questions from the server
+    fetch('/admin/questions/search?question=' + encodeURIComponent(question))
+        .then(response => response.json())
+        .then(data => {
+            // If similar questions are found, populate the #matching-questions div
+            if (data.length > 0) {
+                const questionsList = document.getElementById('questions-list');
+                questionsList.innerHTML = ''; // Clear the previous list
+                data.forEach(q => {
+                    const li = document.createElement('li');
+                    li.textContent = q.question;
+                    questionsList.appendChild(li);
+                });
+                document.getElementById('matching-questions').style.display = 'block';
+            } else {
+                // If no matching questions are found, submit the form
+                e.target.submit();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+});
+
+// When the "Ignore" button is clicked, hide the #matching-questions div and submit the form
+document.getElementById('ignore-button').addEventListener('click', function() {
+    document.getElementById('matching-questions').style.display = 'none';
+    window.location.href = '/admin/dashboard/1';
+
+    //document.querySelector('form').submit();
+});
+
+// When the "It is Different" button is clicked, submit the form
+document.getElementById('different-button').addEventListener('click', function() {
+    document.querySelector('form').submit();
+});
+
+    </script>
+    
+
+      
+    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>
